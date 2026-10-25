@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard SDM Bulanan</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f2f5f4;--card:#fff;--ink:#14262b;--mute:#5d7075;--line:#dbe3e2;--teal:#0f6b6b;--teal2:#6fb3ad;--amber:#c98a1b;--red:#b3402f;--ok:#2f7d4f;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b1e;--card:#172629;--ink:#e6f0ee;--mute:#93a9a8;--line:#27393c;--teal:#4fc0b6;--teal2:#2c7a76;--amber:#e6b04f;--red:#ee7a67;--ok:#6cc58c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1b1e;--card:#172629;--ink:#e6f0ee;--mute:#93a9a8;--line:#27393c;--teal:#4fc0b6;--teal2:#2c7a76;--amber:#e6b04f;--red:#ee7a67;--ok:#6cc58c;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.5 'Plus Jakarta Sans',system-ui,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;margin:0;font-weight:800;letter-spacing:-.01em}h2{font-size:15px;margin:0 0 12px;font-weight:700}
+.top{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+.sub{color:var(--mute);margin:2px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.drop{border:2px dashed var(--teal2);border-radius:10px;padding:18px;text-align:center;cursor:pointer;background:var(--card)}
+.drop.on{background:color-mix(in srgb,var(--teal) 10%,var(--card))}
+.drop b{font-size:15px}.drop span{display:block;color:var(--mute);font-size:13px}
+button.btn{font:inherit;font-weight:700;background:var(--teal);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+button.btn:focus-visible,.drop:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-size:12px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.chip.ok{border-color:var(--ok);color:var(--ok);font-weight:700}
+.grid{display:grid;gap:14px;margin-top:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi .v{font-size:28px;font-weight:800;line-height:1.1}.kpi .l{color:var(--mute);font-size:12.5px}
+.kpi .n{font-size:12px;margin-top:4px}
+.neg{color:var(--red)}.pos{color:var(--ok)}.warn{color:var(--amber)}
+.two{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.chartbox{position:relative;height:260px}
+.bar{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:8px;align-items:center;margin:6px 0;font-size:12.5px}
+.bar i{display:block;height:10px;border-radius:5px;background:var(--teal)}.bar .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fund{margin:10px 0}.fund .tr{height:12px;background:var(--line);border-radius:6px;overflow:hidden}.fund .tr i{display:block;height:100%;background:var(--amber)}
+.fund .r{display:flex;justify-content:space-between;font-size:12.5px;color:var(--mute);margin-top:4px}
+ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
+.empty{color:var(--mute);font-style:italic}
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+.theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <div><h1 id="ttl">Dashboard SDM Bulanan</h1><p class="sub" id="sub">Unggah file Excel untuk menampilkan data.</p></div>
+  <div><button class="theme" id="tg" type="button">Mode gelap/terang</button></div>
+</div>
+
+<section class="card" aria-label="Unggah file">
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Pilih atau tarik file Excel ke sini">
+    <b>Tarik semua file Excel ke sini, atau klik untuk memilih</b>
+    <span>Bisa banyak file sekaligus. Jenis file dikenali otomatis dari namanya. Data diproses di browser Anda dan tidak dikirim ke mana pun.</span>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xlsm,.xls" multiple hidden>
+  <div class="chips" id="chips"></div>
+</section>
+
+<div id="out" hidden>
+  <div class="grid kpis" id="kpis"></div>
+  <div class="grid two">
+    <div class="card"><h2>Komposisi tenaga kerja per kelompok</h2><div class="chartbox"><canvas id="c1"></canvas></div></div>
+    <div class="card"><h2>Tren kehadiran (alpha, sakit, izin)</h2><div class="chartbox"><canvas id="c2"></canvas></div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>Biaya lembur per bulan (Rp juta)</h2><div class="chartbox"><canvas id="c3"></canvas></div></div>
+    <div class="card"><h2>Tren disiplin</h2><div class="chartbox"><canvas id="c4"></canvas></div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>10 karyawan lembur tertinggi</h2><div id="topk"></div></div>
+    <div class="card"><h2>10 unit kerja lembur tertinggi</h2><div id="topu"></div></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2>Pemenuhan tenaga kerja</h2><div class="wrap" id="ful"></div></div>
+    <div class="card"><h2>Pendanaan imbalan pasca kerja (DPLK)</h2><div id="dplk"></div></div>
+  </div>
+  <div class="grid"><div class="card"><h2>Sorotan bulan ini</h2><ul class="hl" id="hl"></ul></div></div>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const KIND={dash:'Dashboard Excel (riwayat & peta unit)',tk:'Data TK',ful:'Fulfillment',abs:'Absensi bulan ini',lbr:'Rekap lembur',dplk:'Portofolio DPLK',pes:'Rekap pesangon',eval:'Evaluasi biaya lembur'};
+const BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+const NAMA_BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const S={};let charts={};
+const $=id=>document.getElementById(id);
+const num=v=>typeof v==='number'?v:(parseFloat(v)||0);
+const fmt=n=>Math.round(n).toLocaleString('id-ID');
+const rp=n=>{const a=Math.abs(n),s=n<0?'-':'';return a>=1e9?s+'Rp'+(a/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' M':a>=1e6?s+'Rp'+(a/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+' jt':s+'Rp'+fmt(a)};
+const pct=n=>(n*100).toLocaleString('id-ID',{maximumFractionDigits:1})+'%';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function detect(name){const n=name.toLowerCase();
+  if(n.includes('dashboard'))return'dash';if(n.includes('data_tk'))return'tk';
+  if(n.includes('fullfil')||n.includes('fulfil'))return'ful';
+  if(n.includes('absensi')&&n.includes('sept'))return'abs';
+  if(n.includes('rekap_lembur'))return'lbr';if(n.includes('dplk')||n.includes('portofolio'))return'dplk';
+  if(n.includes('pesangon'))return'pes';if(n.includes('evaluasi'))return'eval';return null}
+
+async function load(files){
+  const skipped=[];
+  for(const f of files){const k=detect(f.name);
+    if(!k){skipped.push(f.name);continue}
+    try{S[k]=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});S[k+'_name']=f.name}
+    catch(e){skipped.push(f.name+' (gagal dibaca)')}}
+  chips(skipped);render()}
+
+function chips(skipped=[]){
+  $('chips').innerHTML=Object.keys(KIND).map(k=>`<span class="chip ${S[k]?'ok':''}">${S[k]?'✓ ':''}${KIND[k]}</span>`).join('')+
+   skipped.map(n=>`<span class="chip neg">Tidak dikenali: ${esc(n)}</span>`).join('')}
+
+const rows=(k,sheet)=>{const w=S[k];if(!w)return[];const ws=w.Sheets[sheet];return ws?XLSX.utils.sheet_to_json(ws,{header:1,defval:null}):[]};
+const objs=(k,sheet)=>{const w=S[k];if(!w||!w.Sheets[sheet])return[];return XLSX.utils.sheet_to_json(w.Sheets[sheet],{defval:null})};
+function block(r,a,b){const i=r.findIndex(x=>x[0]===a&&x[1]===b);if(i<0)return null;const out=[];
+  for(let j=i+1;j<r.length&&r[j][0];j++)out.push(r[j]);return{head:r[i],data:out}}
+
+function render(){
+  if(!Object.keys(KIND).some(k=>S[k]))return;
+  $('out').hidden=false;
+  const hit=rows('dash','Hitung');
+  const tk=S.tk?objs('tk',S.tk.SheetNames[0]).filter(r=>r.EMP_ID):[];
+  let periode=0;
+  if(tk[0]&&tk[0].PP_CODE)periode=parseInt(String(tk[0].PP_CODE).split('-')[1]);
+  if(!periode&&hit[0])periode=num(hit[0][1]);
+  if(!periode)periode=9;
+  const thn=tk[0]?parseInt(String(tk[0].PP_CODE).split('-')[0]):2026;
+  const bln=NAMA_BLN[periode-1];
+  $('ttl').textContent='Dashboard SDM — '+bln+' '+thn;
+  $('sub').textContent='Periode '+periode+'. Sumber: '+Object.keys(KIND).filter(k=>S[k]).map(k=>S[k+'_name']).join(', ');
+
+  // headcount
+  const pkwtt=tk.filter(r=>r.EMP_STATUS==='PKWTT').length,pkwt=tk.filter(r=>r.EMP_STATUS==='PKWT').length;
+  const lk=tk.filter(r=>String(r.GENDER).toUpperCase()==='PRIA').length;
+  const masuk=tk.filter(r=>r.START_DATE instanceof Date&&r.START_DATE.getFullYear()===thn&&r.START_DATE.getMonth()+1===periode).length;
+  let keluar=null;
+  if(S.pes){keluar=objs('pes','Pesangon').filter(r=>r['TGL KELUAR'] instanceof Date&&r['TGL KELUAR'].getMonth()+1===periode&&r['TGL KELUAR'].getFullYear()===thn).length}
+
+  // fulfillment
+  let F=null;
+  if(S.ful){const r=rows('ful',S.ful.SheetNames[0]).find(x=>x[2]==='TOTAL');
+    if(r)F={keb:num(r[4]),pkwt:num(r[5]),pkwtt:num(r[6]),os:num(r[7]),tf:num(r[8]),tot:num(r[10]),dev:num(r[11])}}
+
+  // lembur
+  const L={bln:[],top:[],unit:[]};
+  if(S.lbr){let cur=[];
+    S.lbr.SheetNames.filter(n=>/^\d+$/.test(n)).sort((a,b)=>a-b).forEach(n=>{
+      const d=objs('lbr',n).filter(r=>r.EMP_ID);const m=+n;
+      L.bln[m]=d.reduce((s,r)=>s+num(r.OT),0);if(m===periode)cur=d});
+    L.top=[...cur].sort((a,b)=>num(b.OT)-num(a.OT)).slice(0,10);
+    const u={};cur.forEach(r=>u[r.AREA_NAME]=(u[r.AREA_NAME]||0)+num(r.OT));
+    L.unit=Object.entries(u).sort((a,b)=>b[1]-a[1]).slice(0,10)}
+  const biaya=L.bln.slice(1,periode+1).reduce((s,v)=>s+(v||0),0);
+  let budget=null;
+  const hb=hit.find(r=>r[0]==='Budget Lembur');if(hb)budget=num(hb[1]);
+  if(budget==null&&S.eval){const t=rows('eval','RKAP Lbr').filter(r=>r[0]==null&&typeof r[4]==='number');if(t[0])budget=t[0].slice(4,4+periode).reduce((s,v)=>s+num(v),0)}
+  const reim=hit.find(r=>r[0]==='Dapat Direimburse');const reimv=reim?num(reim[1]):null;
+
+  // kelompok
+  const map={};objs('dash','Peta_Unit').forEach(r=>{if(r.AREA_NAME)map[String(r.AREA_NAME).trim().toUpperCase()]=r.KELOMPOK});
+  const kel={};tk.forEach(r=>{const k=map[String(r.AREA_NAME||'').trim().toUpperCase()]||(Object.keys(map).length?'Belum dipetakan':'Semua unit');kel[k]=(kel[k]||0)+1});
+
+  // absensi trend
+  const ab=block(hit,'Bulan','Periode');let T={l:[],a:[],s:[],i:[]};
+  if(ab)ab.data.forEach(r=>{T.l.push(r[0]);T.a.push(num(r[2]));T.s.push(num(r[3]));T.i.push(num(r[4]))});
+  let absNow=null;
+  if(S.abs){const d=rows('abs','Sheet2').filter(r=>typeof r[0]==='number'&&r[1]);
+    absNow={a:d.reduce((s,r)=>s+num(r[7]),0),s:d.reduce((s,r)=>s+num(r[9]),0),i:d.reduce((s,r)=>s+num(r[10]),0)};
+    const li=T.l.indexOf(BLN[periode-1]);
+    if(li>=0){T.a[li]=absNow.a;T.s[li]=absNow.s;T.i[li]=absNow.i}else{T.l.push(BLN[periode-1]);T.a.push(absNow.a);T.s.push(absNow.s);T.i.push(absNow.i)}}
+  const ds=block(hit,'Bulan','Teguran');
+
+  // dplk
+  const D={};
+  if(S.dplk)[['PKWTT','PKWTT'],['PKWT','PKWT']].forEach(([k,sh])=>{
+    const r=rows('dplk',sh);const last=x=>{for(let i=x.length-1;i>=0;i--)if(typeof x[i]==='number')return x[i];return null};
+    const f=r.find(x=>x[1]==='F'),g=r.find(x=>x[1]==='G');
+    if(f&&g)D[k]={kew:last(f),aset:last(g)}});
+  if(!Object.keys(D).length&&hit.length){const k=hit.find(r=>r[0]==='Kewajiban'),s=hit.find(r=>r[0]==='Saldo');
+    if(k&&s)D.PKWTT={kew:num(k[1]),aset:num(s[1])},D.PKWT={kew:num(k[2]),aset:num(s[2])}}
+
+  // KPI
+  const total=tk.length||num((hit.find(r=>r[0]==='Total karyawan')||[])[1]);
+  const kp=[];const K=(l,v,n,c='')=>kp.push(`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="n ${c}">${n||''}</div></div>`);
+  K('Total karyawan',total?fmt(total):'—',tk.length?`PKWTT ${fmt(pkwtt)} · PKWT ${fmt(pkwt)}`:'Unggah Data TK');
+  if(tk.length){K('Komposisi',pct(pkwt/total),'PKWT, '+pct(pkwtt/total)+' PKWTT');K('Laki-laki / perempuan',fmt(lk)+' / '+fmt(total-lk))}
+  if(F){K('Fulfillment',pct(F.tot/F.keb),'Kebutuhan '+fmt(F.keb)+' orang');K('Kekurangan formasi',fmt(Math.abs(F.dev)),F.dev<0?'di bawah kebutuhan':'terpenuhi',F.dev<0?'neg':'pos')}
+  if(tk.length)K('Masuk / keluar',fmt(masuk)+' / '+(keluar==null?'—':fmt(keluar)),bln);
+  if(L.bln.length){K('Biaya lembur s.d. '+BLN[periode-1],rp(biaya),budget!=null?'Budget '+rp(budget):'');
+    if(budget!=null)K('Deviasi lembur',rp(budget-biaya),budget-biaya<0?'melebihi budget':'dalam budget',budget-biaya<0?'neg':'pos')}
+  if(reimv!=null)K('Dapat direimburse',rp(reimv),'dari biaya lembur');
+  $('kpis').innerHTML=kp.join('');
+
+  // charts
+  Object.values(charts).forEach(c=>c.destroy());charts={};
+  Chart.defaults.color=css('--mute');Chart.defaults.font.family="'Plus Jakarta Sans',system-ui,sans-serif";
+  const pal=[css('--teal'),css('--amber'),css('--teal2'),css('--red'),'#8a8f98'];
+  const mk=(id,cfg)=>{const el=$(id);el.parentElement.querySelector('.empty')?.remove();el.style.display='';charts[id]=new Chart(el,cfg)};
+  const none=id=>{const el=$(id);el.style.display='none';if(!el.parentElement.querySelector('.empty'))el.parentElement.insertAdjacentHTML('beforeend','<p class="empty">Belum ada data. Unggah file terkait.</p>')};
+  const base={maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}};
+  Object.keys(kel).length?mk('c1',{type:'doughnut',data:{labels:Object.keys(kel).map(k=>k+' ('+kel[k]+')'),datasets:[{data:Object.values(kel),backgroundColor:pal,borderColor:css('--card')}]},options:base}):none('c1');
+  T.l.length?mk('c2',{type:'line',data:{labels:T.l,datasets:[['Alpha',T.a],['Sakit',T.s],['Izin',T.i]].map(([n,d],i)=>({label:n,data:d,borderColor:pal[i==0?3:i==1?0:1],backgroundColor:pal[i==0?3:i==1?0:1],tension:.3}))},options:base}):none('c2');
+  L.bln.length?mk('c3',{type:'bar',data:{labels:BLN.slice(0,periode),datasets:[{label:'Realisasi',data:L.bln.slice(1,periode+1).map(v=>Math.round((v||0)/1e6)),backgroundColor:pal[0]}]},options:{...base,plugins:{legend:{display:false}}}}):none('c3');
+  if(ds&&ds.data.length){const h=ds.head.slice(1).map(String);
+    mk('c4',{type:'bar',data:{labels:ds.data.map(r=>r[0]),datasets:h.map((n,i)=>({label:n,data:ds.data.map(r=>num(r[i+1])),backgroundColor:pal[i%5]}))},options:{...base,scales:{x:{stacked:true},y:{stacked:true,ticks:{precision:0}}}}})}else none('c4');
+
+  // top lists
+  const bars=(items)=>{if(!items.length)return'<p class="empty">Unggah rekap lembur.</p>';const mx=Math.max(...items.map(i=>i[2]));
+    return items.map(([n,sub,v])=>`<div class="bar" title="${esc(sub)}"><span class="t">${esc(n)}</span><i style="width:${Math.max(3,v/mx*100)}%"></i><b>${rp(v)}</b></div>`).join('')};
+  $('topk').innerHTML=bars(L.top.map(r=>[r.EMP_NAME,r.AREA_NAME,num(r.OT)]));
+  $('topu').innerHTML=bars(L.unit.map(([n,v])=>[n,n,v]));
+
+  // fulfillment table
+  $('ful').innerHTML=F?`<table><tr><th>Komponen</th><th>Orang</th></tr>${[['Kebutuhan',F.keb],['PKWT',F.pkwt],['PKWTT',F.pkwtt],['Outsourcing',F.os],['Task force',F.tf],['Total tersedia',F.tot],['Deviasi',F.dev]].map(([a,b])=>`<tr><td>${a}</td><td class="${a==='Deviasi'&&b<0?'neg':''}">${fmt(b)}</td></tr>`).join('')}</table>`:'<p class="empty">Unggah data fulfillment.</p>';
+
+  // dplk
+  $('dplk').innerHTML=Object.keys(D).length?Object.entries(D).map(([k,v])=>{const ratio=Math.min(1,v.aset/v.kew);
+    return`<div class="fund"><b>${k}</b><div class="tr"><i style="width:${ratio*100}%"></i></div><div class="r"><span>Aset ${rp(v.aset)} dari kewajiban ${rp(v.kew)}</span><span class="neg">Defisit ${rp(v.kew-v.aset)} (${pct(1-ratio)})</span></div></div>`}).join(''):'<p class="empty">Unggah portofolio DPLK.</p>';
+
+  // sorotan
+  const h=[];
+  if(tk.length)h.push(`Jumlah tenaga kerja ${fmt(total)} orang (${pct(pkwtt/total)} PKWTT, ${pct(pkwt/total)} PKWT).`);
+  if(F)h.push(`Pemenuhan tenaga kerja ${pct(F.tot/F.keb)}; ${F.dev<0?'kekurangan '+fmt(-F.dev)+' orang dari kebutuhan':'kebutuhan terpenuhi'}.`);
+  if(budget!=null&&L.bln.length)h.push(biaya>budget?`Biaya lembur ${rp(biaya)} melebihi budget ${rp(budget)} sebesar ${rp(biaya-budget)}.`:`Biaya lembur ${rp(biaya)} masih di bawah budget ${rp(budget)}.`);
+  Object.entries(D).forEach(([k,v])=>v.aset<v.kew&&h.push(`Pendanaan imbalan ${k} defisit ${rp(v.kew-v.aset)}.`));
+  if(absNow)h.push(`Absensi ${bln}: alpha ${fmt(absNow.a)}, sakit ${fmt(absNow.s)}, izin ${fmt(absNow.i)}.`);
+  if(keluar!=null)h.push(`Karyawan keluar ${bln}: ${fmt(keluar)} orang; masuk ${fmt(masuk)} orang.`);
+  $('hl').innerHTML=h.length?h.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="empty">Belum ada sorotan.</li>';
+}
+
+const dz=$('drop');
+dz.onclick=()=>$('fi').click();
+dz.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fi').click()}};
+$('fi').onchange=e=>load([...e.target.files]);
+['dragover','dragenter'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add('on')}));
+['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove('on')}));
+dz.addEventListener('drop',e=>load([...e.dataTransfer.files]));
+$('tg').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark';render()};
+chips();
+</script>
+</body>
+</html>
