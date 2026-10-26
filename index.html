@@ -41,6 +41,22 @@ ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
 .mf{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}label{font-size:12px;color:var(--mute)}input[type=number],input[list]{width:100%;font:inherit;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 .theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+
+:root{--bg:#800020;--card:#fffaf5;--ink:#2b1a1d;--mute:#7a5f64;--line:#ead7d3;--teal:#800020;--teal2:#d6aeae;--amber:#e4b427;--red:#c00000;--ok:#00a04a;--pri:#800020}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#24080f;--card:#341720;--ink:#f5e8e4;--mute:#c9aeb2;--line:#4a2a33;--teal:#d4607a;--teal2:#8a3a4c;--amber:#e4b427;--red:#ff6b6b;--ok:#4cd68a;--pri:#9b2c45}}
+:root[data-theme="dark"]{--bg:#24080f;--card:#341720;--ink:#f5e8e4;--mute:#c9aeb2;--line:#4a2a33;--teal:#d4607a;--teal2:#8a3a4c;--amber:#e4b427;--red:#ff6b6b;--ok:#4cd68a;--pri:#9b2c45}
+body{font-family:'Questrial','Century Gothic',system-ui,sans-serif}
+.top h1,.top .sub{color:#fff}.theme{color:#fff;border-color:#ffffff66}
+.ph{background:var(--pri);color:#fff;border-radius:8px;padding:6px 12px;font-weight:700;text-align:center;margin-bottom:12px}
+.three{grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+.kpi{text-align:center;border-top:4px solid var(--pri)}.kpi .l{font-weight:700;color:var(--pri);font-size:13px}.kpi .v{font-size:32px;font-weight:800}
+.chartbox.sm{height:170px;margin-bottom:8px}
+.lc{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;margin:6px 0}
+.pill{border-radius:99px;text-align:center;font-weight:800;color:#fff;padding:5px;margin:8px 0}.pill.bad{background:var(--red)}.pill.good{background:var(--ok)}
+.mv{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;margin-bottom:10px}.mv b{font-size:30px;display:block}.mv span{font-size:12px;color:var(--mute)}
+.v2{font-size:30px;font-weight:800}.v2 small{font-size:13px;font-weight:400;color:var(--mute)}
+.ci{padding:6px 10px;border-left:4px solid var(--pri);margin:6px 0;font-size:13px}
+.fund{border:1px solid var(--line);border-radius:10px;padding:10px;margin:0 0 10px}
 </style>
 </head>
 <body>
@@ -62,24 +78,17 @@ ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
 
 <div id="out" hidden>
   <div class="grid kpis" id="kpis"></div>
-  <div class="grid two">
-    <div class="card"><h2>Komposisi tenaga kerja per kelompok</h2><div class="chartbox"><canvas id="c1"></canvas></div></div>
-    <div class="card"><h2>Tren kehadiran (alpha, sakit, izin)</h2><div class="chartbox"><canvas id="c2"></canvas></div></div>
+  <div class="grid three">
+    <section class="card"><div class="ph">Demografi karyawan</div><div class="chartbox"><canvas id="c1"></canvas></div><div class="wrap" id="ful"></div></section>
+    <section class="card"><div class="ph">Movement dan pensiunan</div><div id="mov"></div></section>
+    <section class="card"><div class="ph">Trend kehadiran dan disiplin</div><div class="chartbox sm"><canvas id="c2"></canvas></div><div class="chartbox sm"><canvas id="c4"></canvas></div><div id="ins"></div></section>
   </div>
-  <div class="grid two">
-    <div class="card"><h2>Biaya lembur per bulan (Rp juta)</h2><div class="chartbox"><canvas id="c3"></canvas></div></div>
-    <div class="card"><h2>Tren disiplin</h2><div class="chartbox"><canvas id="c4"></canvas></div></div>
-  </div>
-  <div class="grid two">
-    <div class="card"><h2>10 karyawan lembur tertinggi</h2><div id="topk"></div></div>
-    <div class="card"><h2>10 unit kerja lembur tertinggi</h2><div id="topu"></div></div>
-  </div>
-  <div class="grid two">
-    <div class="card"><h2>Pemenuhan tenaga kerja</h2><div class="wrap" id="ful"></div></div>
-    <div class="card"><h2>Pendanaan imbalan pasca kerja (DPLK)</h2><div id="dplk"></div></div>
+  <div class="grid three">
+    <section class="card"><div class="ph">Produktivitas SDM dan lembur</div><h2>10 karyawan lembur tertinggi</h2><div id="topk"></div><h2 style="margin-top:14px">10 unit kerja lembur tertinggi</h2><div id="topu"></div><div class="chartbox sm" style="margin-top:14px"><canvas id="c3"></canvas></div><div id="lem"></div></section>
+    <section class="card"><div class="ph">Imbalan pasca kerja</div><div id="dplk"></div></section>
+    <section class="card"><div class="ph">Highlight</div><ul class="hl" id="hl"></ul></section>
   </div>
   <div class="grid two"><div class="card"><h2>Isian manual bulan ini</h2><div id="man"></div></div><div class="card"><h2>Pemetaan unit ke kelompok</h2><div id="um"></div></div></div>
-  <div class="grid"><div class="card"><h2>Sorotan bulan ini</h2><ul class="hl" id="hl"></ul></div></div>
 </div>
 </main>
 
@@ -92,6 +101,7 @@ const NAMA_BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustu
 const S={};let charts={};
 let H={map:{},abs:{},disc:{},bud:{}};
 try{Object.assign(H,JSON.parse(localStorage.getItem('sdm_hist')||'{}'))}catch(e){}
+H.pens=H.pens||{};
 const save=()=>{try{localStorage.setItem('sdm_hist',JSON.stringify(H))}catch(e){}};
 function importDash(){
   objs('dash','Peta_Unit').forEach(r=>{if(r.AREA_NAME&&r.KELOMPOK)H.map[String(r.AREA_NAME).trim().toUpperCase()]=r.KELOMPOK});
@@ -99,6 +109,7 @@ function importDash(){
   if(ab)ab.data.forEach(r=>H.abs[r[1]]={a:num(r[2]),s:num(r[3]),i:num(r[4])});
   if(ab&&ds)ds.data.forEach((r,i)=>{if(ab.data[i])H.disc[ab.data[i][1]]={t:num(r[1]),sp1:num(r[2]),sp2:num(r[3]),sp3:num(r[4]),phk:num(r[5])}});
   const hb=hit.find(r=>r[0]==='Budget Lembur');if(hb&&hit[0])H.bud[num(hit[0][1])]=num(hb[1]);
+  const pe={};['Kepala Divisi','Kepala Unit','Supervisor','Pelaksana'].forEach(j=>{const r=hit.find(x=>x[0]===j);if(r)pe[j]=num(r[1])});if(hit[0])H.pens[num(hit[0][1])]=pe;
   save()}
 const $=id=>document.getElementById(id);
 const num=v=>typeof v==='number'?v:(parseFloat(v)||0);
@@ -115,14 +126,25 @@ function detect(name){const n=name.toLowerCase();
   if(n.includes('rekap_lembur'))return'lbr';if(n.includes('dplk')||n.includes('portofolio'))return'dplk';
   if(n.includes('pesangon'))return'pes';if(n.includes('evaluasi'))return'eval';return null}
 
+function detectWb(wb){const n=wb.SheetNames,has=x=>n.includes(x);
+  if(has('Hitung')&&has('Master_TK'))return'dash';
+  if(has('RKAP Lbr'))return'eval';if(has('Pesangon'))return'pes';
+  if(has('PKWTT')&&has('PKWT'))return'dplk';
+  if(has('Rekap')&&has('1'))return'lbr';
+  const r=XLSX.utils.sheet_to_json(wb.Sheets[n[0]],{header:1,defval:null}).slice(0,6);
+  const flat=r.flat().map(x=>String(x||'').toUpperCase()).join('|');
+  if(flat.includes('EMP_ID')&&flat.includes('EMP_STATUS'))return'tk';
+  if(flat.includes('KEBUTUHAN'))return'ful';
+  const s2=wb.Sheets['Sheet2'];if(s2){const a=XLSX.utils.sheet_to_json(s2,{header:1,defval:null})[0];if(a&&String(a[0]||'').toUpperCase().includes('ABSENSI'))return'abs'}
+  return null}
 async function load(files){
   const skipped=[];
   for(const f of files){
     if(/\.json$/i.test(f.name)){try{Object.assign(H,JSON.parse(await f.text()));save()}catch(e){skipped.push(f.name+' (gagal dibaca)')}continue}
-    const k=detect(f.name);
-    if(!k){skipped.push(f.name);continue}
-    try{S[k]=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});S[k+'_name']=f.name;if(k==='dash')importDash()}
-    catch(e){skipped.push(f.name+' (gagal dibaca)')}}
+    let wb;try{wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true})}catch(e){skipped.push(f.name+' (gagal dibaca)');continue}
+    const k=detectWb(wb)||detect(f.name);
+    if(!k){skipped.push(f.name+' (isi tidak dikenali)');continue}
+    S[k]=wb;S[k+'_name']=f.name;if(k==='dash')importDash()}
   chips(skipped);render()}
 
 function chips(skipped=[]){
@@ -145,8 +167,8 @@ function render(){
   if(!periode)periode=9;
   const thn=tk[0]?parseInt(String(tk[0].PP_CODE).split('-')[0]):2026;
   const bln=NAMA_BLN[periode-1];
-  $('ttl').textContent='Dashboard SDM — '+bln+' '+thn;
-  $('sub').textContent='Periode '+periode+'. Sumber: '+Object.keys(KIND).filter(k=>S[k]).map(k=>S[k+'_name']).join(', ');
+  $('ttl').textContent='Dashboard SDM PT Biringkassi Raya';
+  $('sub').textContent='Per '+bln+' '+thn;
 
   // headcount
   const pkwtt=tk.filter(r=>r.EMP_STATUS==='PKWTT').length,pkwt=tk.filter(r=>r.EMP_STATUS==='PKWT').length;
@@ -199,15 +221,23 @@ function render(){
 
   // KPI
   const total=tk.length||num((hit.find(r=>r[0]==='Total karyawan')||[])[1]);
-  const kp=[];const K=(l,v,n,c='')=>kp.push(`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="n ${c}">${n||''}</div></div>`);
-  K('Total karyawan',total?fmt(total):'—',tk.length?`PKWTT ${fmt(pkwtt)} · PKWT ${fmt(pkwt)}`:'Unggah Data TK');
-  if(tk.length){K('Komposisi',pct(pkwt/total),'PKWT, '+pct(pkwtt/total)+' PKWTT');K('Laki-laki / perempuan',fmt(lk)+' / '+fmt(total-lk))}
-  if(F){K('Fulfillment',pct(F.tot/F.keb),'Kebutuhan '+fmt(F.keb)+' orang');K('Kekurangan formasi',fmt(Math.abs(F.dev)),F.dev<0?'di bawah kebutuhan':'terpenuhi',F.dev<0?'neg':'pos')}
-  if(tk.length)K('Masuk / keluar',fmt(masuk)+' / '+(keluar==null?'—':fmt(keluar)),bln);
-  if(L.bln.length){K('Biaya lembur s.d. '+BLN[periode-1],rp(biaya),budget!=null?'Budget '+rp(budget):'');
-    if(budget!=null)K('Deviasi lembur',rp(budget-biaya),budget-biaya<0?'melebihi budget':'dalam budget',budget-biaya<0?'neg':'pos')}
-  if(reimv!=null)K('Dapat direimburse',rp(reimv),'dari biaya lembur');
+  const kp=[];const K=(l,v,c='')=>kp.push(`<div class="card kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div></div>`);
+  const dsh='—',has=tk.length>0;
+  K('TOTAL KARYAWAN',has?fmt(total):dsh);K('PKWTT',has?fmt(pkwtt):dsh);K('PKWT',has?fmt(pkwt):dsh);K('LAKI-LAKI',has?fmt(lk):dsh);K('PEREMPUAN',has?fmt(total-lk):dsh);
+  K('FULFILLMENT TENAGA KERJA',F?pct(F.tot/F.keb):dsh,F&&F.tot<F.keb?'warn':'');
   $('kpis').innerHTML=kp.join('');
+  const dv=budget!=null?budget-biaya:null;
+  const lc=(l,v,c='')=>`<div class="lc"><span>${l}</span><b class="${c}">${v}</b></div>`;
+  $('lem').innerHTML=L.bln.length?lc('Biaya lembur',rp(biaya))+lc('Budget lembur',budget!=null?rp(budget):'—')+lc('Deviasi',dv!=null?rp(dv):'—',dv<0?'neg':'pos')+lc('Dapat direimburse',reimv!=null?rp(reimv):'—'):'<p class="empty">Unggah rekap lembur.</p>';
+  const pk=H.pens[periode]||{},pj=['Kepala Divisi','Kepala Unit','Supervisor','Pelaksana'];
+  let pensT=pj.reduce((a,j)=>a+num(pk[j]),0);
+  if(!pensT&&S.pes)pensT=objs('pes','Pesangon').filter(r=>/PENSIUN/i.test(r['PENYEBAB PHK']||'')&&r['TGL KELUAR'] instanceof Date&&r['TGL KELUAR'].getMonth()+1<=periode).length;
+  $('mov').innerHTML=`<div class="mv"><div><b class="pos">${has?masuk:'—'}</b><span>Orang masuk</span></div><div><b class="neg">${keluar==null?'—':keluar}</b><span>Orang keluar</span></div></div>
+   <h2>Pensiun s.d. ${bln}: ${pensT} orang</h2>${pj.filter(j=>num(pk[j])).map(j=>`<div class="bar"><span class="t">${j}</span><i style="width:${Math.max(3,num(pk[j])/pensT*100)}%"></i><b>${fmt(num(pk[j]))}</b></div>`).join('')||'<p class="empty">Rincian jabatan diisi di isian manual.</p>'}
+   <h2 style="margin-top:14px">Diisi outsourcing</h2><div class="v2">${F?fmt(F.os):'—'} <small>orang</small></div>`;
+  const li=ps.length-1,dis=q=>{const d=H.disc[q]||{};return num(d.t)+num(d.sp1)+num(d.sp2)+num(d.sp3)+num(d.phk)};
+  const ci=(t,d)=>`<div class="ci"><b class="${d<=0?'pos':'neg'}">${d<=0?'▼':'▲'}</b> ${t}</div>`;
+  $('ins').innerHTML=li>0?ci(`Alpha ${T.a[li]<T.a[li-1]?'menurun':T.a[li]>T.a[li-1]?'naik':'tetap'} (${T.a[li]} dari ${T.a[li-1]})`,T.a[li]-T.a[li-1])+ci(`Kasus sakit ${T.s[li]<T.s[li-1]?'turun':T.s[li]>T.s[li-1]?'naik':'tetap'} (${T.s[li]} dari ${T.s[li-1]})`,T.s[li]-T.s[li-1])+ci(`Pelanggaran disiplin ${dis(ps[li])} kasus (bulan lalu ${dis(ps[li-1])})`,dis(ps[li])-dis(ps[li-1])):'<p class="empty">Tren muncul setelah dua bulan data.</p>';
 
   // charts
   Object.values(charts).forEach(c=>c.destroy());charts={};
@@ -232,8 +262,7 @@ function render(){
   $('ful').innerHTML=F?`<table><tr><th>Komponen</th><th>Orang</th></tr>${[['Kebutuhan',F.keb],['PKWT',F.pkwt],['PKWTT',F.pkwtt],['Outsourcing',F.os],['Task force',F.tf],['Total tersedia',F.tot],['Deviasi',F.dev]].map(([a,b])=>`<tr><td>${a}</td><td class="${a==='Deviasi'&&b<0?'neg':''}">${fmt(b)}</td></tr>`).join('')}</table>`:'<p class="empty">Unggah data fulfillment.</p>';
 
   // dplk
-  $('dplk').innerHTML=Object.keys(D).length?Object.entries(D).map(([k,v])=>{const ratio=Math.min(1,v.aset/v.kew);
-    return`<div class="fund"><b>${k}</b><div class="tr"><i style="width:${ratio*100}%"></i></div><div class="r"><span>Aset ${rp(v.aset)} dari kewajiban ${rp(v.kew)}</span><span class="neg">Defisit ${rp(v.kew-v.aset)} (${pct(1-ratio)})</span></div></div>`}).join(''):'<p class="empty">Unggah portofolio DPLK.</p>';
+  $('dplk').innerHTML=Object.keys(D).length?Object.entries(D).map(([k,v])=>{const sel=v.kew-v.aset;return`<div class="fund"><b>Kompensasi ${k}</b>${lc('Kewajiban PSL',rp(v.kew))}${lc('Saldo per '+bln,rp(v.aset))}${lc('Status pendanaan',pct(-sel/v.kew),sel>0?'neg':'pos')}<div class="pill ${sel>0?'bad':'good'}">${sel>0?'DEFISIT ':'SURPLUS '}${rp(Math.abs(sel))}</div></div>`}).join(''):'<p class="empty">Unggah portofolio DPLK.</p>';
 
   // sorotan
   const h=[];
@@ -258,9 +287,9 @@ $('tg').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'
 function renderMan(p,um){
   const d=H.disc[p]||{},b=H.bud[p]??'';
   const f=(k,l,v)=>`<label>${l}<input type="number" min="0" data-k="${k}" value="${v??''}"></label>`;
-  $('man').innerHTML=`<p class="sub">Periode ${p}. Tersimpan otomatis di browser ini.</p><div class="mf">${f('t','Teguran',d.t)}${f('sp1','SP1',d.sp1)}${f('sp2','SP2',d.sp2)}${f('sp3','SP3',d.sp3)}${f('phk','PHK',d.phk)}${f('bud','Budget lembur s.d. bulan ini (Rp)',b)}</div>`;
+  $('man').innerHTML=`<p class="sub">Periode ${p}. Tersimpan otomatis di browser ini.</p><div class="mf">${f('t','Teguran',d.t)}${f('sp1','SP1',d.sp1)}${f('sp2','SP2',d.sp2)}${f('sp3','SP3',d.sp3)}${f('phk','PHK',d.phk)}${f('bud','Budget lembur s.d. bulan ini (Rp)',b)}${['Kepala Divisi','Kepala Unit','Supervisor','Pelaksana'].map(j=>f('x_'+j,'Pensiun s.d. bulan ini: '+j,(H.pens[p]||{})[j])).join('')}</div>`;
   $('man').querySelectorAll('input').forEach(i=>i.onchange=()=>{const k=i.dataset.k,v=i.value===''?null:+i.value;
-    if(k==='bud'){if(v==null)delete H.bud[p];else H.bud[p]=v}else{(H.disc[p]=H.disc[p]||{})[k]=v||0}save();render()});
+    if(k==='bud'){if(v==null)delete H.bud[p];else H.bud[p]=v}else if(k.startsWith('x_')){(H.pens[p]=H.pens[p]||{})[k.slice(2)]=v||0}else{(H.disc[p]=H.disc[p]||{})[k]=v||0}save();render()});
   const g=[...new Set(Object.values(H.map))];
   $('um').innerHTML=um.length?`<datalist id="gl">${g.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>`+um.slice(0,40).map(a=>`<div class="bar" style="grid-template-columns:1fr 1fr"><span class="t">${esc(a)}</span><input list="gl" data-a="${esc(a)}" placeholder="Pilih atau ketik kelompok"></div>`).join(''):'<p class="empty">Semua unit sudah terpetakan.</p>';
   $('um').querySelectorAll('input').forEach(i=>i.onchange=()=>{if(i.value.trim()){H.map[i.dataset.a]=i.value.trim();save();render()}})}
