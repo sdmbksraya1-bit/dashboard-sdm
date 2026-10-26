@@ -39,6 +39,7 @@ button.btn:focus-visible,.drop:focus-visible{outline:3px solid var(--amber);outl
 ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
 .empty{color:var(--mute);font-style:italic}
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+.mf{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}label{font-size:12px;color:var(--mute)}input[type=number],input[list]{width:100%;font:inherit;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 .theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
 </style>
 </head>
@@ -54,8 +55,9 @@ ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
     <b>Tarik semua file Excel ke sini, atau klik untuk memilih</b>
     <span>Bisa banyak file sekaligus. Jenis file dikenali otomatis dari namanya. Data diproses di browser Anda dan tidak dikirim ke mana pun.</span>
   </div>
-  <input type="file" id="fi" accept=".xlsx,.xlsm,.xls" multiple hidden>
+  <input type="file" id="fi" accept=".xlsx,.xlsm,.xls,.json" multiple hidden>
   <div class="chips" id="chips"></div>
+  <div style="margin-top:12px"><button class="btn" id="ex" type="button">Ekspor riwayat (.json)</button> <span class="sub">Untuk memulihkan riwayat, tarik file .json itu ke kotak di atas.</span></div>
 </section>
 
 <div id="out" hidden>
@@ -76,6 +78,7 @@ ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
     <div class="card"><h2>Pemenuhan tenaga kerja</h2><div class="wrap" id="ful"></div></div>
     <div class="card"><h2>Pendanaan imbalan pasca kerja (DPLK)</h2><div id="dplk"></div></div>
   </div>
+  <div class="grid two"><div class="card"><h2>Isian manual bulan ini</h2><div id="man"></div></div><div class="card"><h2>Pemetaan unit ke kelompok</h2><div id="um"></div></div></div>
   <div class="grid"><div class="card"><h2>Sorotan bulan ini</h2><ul class="hl" id="hl"></ul></div></div>
 </div>
 </main>
@@ -83,10 +86,20 @@ ul.hl{margin:0;padding-left:18px}ul.hl li{margin:6px 0}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-const KIND={dash:'Dashboard Excel (riwayat & peta unit)',tk:'Data TK',ful:'Fulfillment',abs:'Absensi bulan ini',lbr:'Rekap lembur',dplk:'Portofolio DPLK',pes:'Rekap pesangon',eval:'Evaluasi biaya lembur'};
+const KIND={dash:'Dashboard Excel lama (opsional, impor sekali)',tk:'Data TK',ful:'Fulfillment',abs:'Absensi bulan ini',lbr:'Rekap lembur',dplk:'Portofolio DPLK',pes:'Rekap pesangon',eval:'Evaluasi biaya lembur'};
 const BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
 const NAMA_BLN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 const S={};let charts={};
+let H={map:{},abs:{},disc:{},bud:{}};
+try{Object.assign(H,JSON.parse(localStorage.getItem('sdm_hist')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('sdm_hist',JSON.stringify(H))}catch(e){}};
+function importDash(){
+  objs('dash','Peta_Unit').forEach(r=>{if(r.AREA_NAME&&r.KELOMPOK)H.map[String(r.AREA_NAME).trim().toUpperCase()]=r.KELOMPOK});
+  const hit=rows('dash','Hitung'),ab=block(hit,'Bulan','Periode'),ds=block(hit,'Bulan','Teguran');
+  if(ab)ab.data.forEach(r=>H.abs[r[1]]={a:num(r[2]),s:num(r[3]),i:num(r[4])});
+  if(ab&&ds)ds.data.forEach((r,i)=>{if(ab.data[i])H.disc[ab.data[i][1]]={t:num(r[1]),sp1:num(r[2]),sp2:num(r[3]),sp3:num(r[4]),phk:num(r[5])}});
+  const hb=hit.find(r=>r[0]==='Budget Lembur');if(hb&&hit[0])H.bud[num(hit[0][1])]=num(hb[1]);
+  save()}
 const $=id=>document.getElementById(id);
 const num=v=>typeof v==='number'?v:(parseFloat(v)||0);
 const fmt=n=>Math.round(n).toLocaleString('id-ID');
@@ -104,9 +117,11 @@ function detect(name){const n=name.toLowerCase();
 
 async function load(files){
   const skipped=[];
-  for(const f of files){const k=detect(f.name);
+  for(const f of files){
+    if(/\.json$/i.test(f.name)){try{Object.assign(H,JSON.parse(await f.text()));save()}catch(e){skipped.push(f.name+' (gagal dibaca)')}continue}
+    const k=detect(f.name);
     if(!k){skipped.push(f.name);continue}
-    try{S[k]=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});S[k+'_name']=f.name}
+    try{S[k]=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});S[k+'_name']=f.name;if(k==='dash')importDash()}
     catch(e){skipped.push(f.name+' (gagal dibaca)')}}
   chips(skipped);render()}
 
@@ -155,24 +170,23 @@ function render(){
     const u={};cur.forEach(r=>u[r.AREA_NAME]=(u[r.AREA_NAME]||0)+num(r.OT));
     L.unit=Object.entries(u).sort((a,b)=>b[1]-a[1]).slice(0,10)}
   const biaya=L.bln.slice(1,periode+1).reduce((s,v)=>s+(v||0),0);
-  let budget=null;
-  const hb=hit.find(r=>r[0]==='Budget Lembur');if(hb)budget=num(hb[1]);
+  let budget=H.bud[periode]??null;
   if(budget==null&&S.eval){const t=rows('eval','RKAP Lbr').filter(r=>r[0]==null&&typeof r[4]==='number');if(t[0])budget=t[0].slice(4,4+periode).reduce((s,v)=>s+num(v),0)}
   const reim=hit.find(r=>r[0]==='Dapat Direimburse');const reimv=reim?num(reim[1]):null;
 
   // kelompok
-  const map={};objs('dash','Peta_Unit').forEach(r=>{if(r.AREA_NAME)map[String(r.AREA_NAME).trim().toUpperCase()]=r.KELOMPOK});
-  const kel={};tk.forEach(r=>{const k=map[String(r.AREA_NAME||'').trim().toUpperCase()]||(Object.keys(map).length?'Belum dipetakan':'Semua unit');kel[k]=(kel[k]||0)+1});
+  const map=H.map;
+  const kel={},um=new Set();tk.forEach(r=>{const a=String(r.AREA_NAME||'').trim().toUpperCase();const k=map[a]||'Belum dipetakan';if(!map[a])um.add(a);kel[k]=(kel[k]||0)+1});
 
   // absensi trend
-  const ab=block(hit,'Bulan','Periode');let T={l:[],a:[],s:[],i:[]};
-  if(ab)ab.data.forEach(r=>{T.l.push(r[0]);T.a.push(num(r[2]));T.s.push(num(r[3]));T.i.push(num(r[4]))});
   let absNow=null;
   if(S.abs){const d=rows('abs','Sheet2').filter(r=>typeof r[0]==='number'&&r[1]);
     absNow={a:d.reduce((s,r)=>s+num(r[7]),0),s:d.reduce((s,r)=>s+num(r[9]),0),i:d.reduce((s,r)=>s+num(r[10]),0)};
-    const li=T.l.indexOf(BLN[periode-1]);
-    if(li>=0){T.a[li]=absNow.a;T.s[li]=absNow.s;T.i[li]=absNow.i}else{T.l.push(BLN[periode-1]);T.a.push(absNow.a);T.s.push(absNow.s);T.i.push(absNow.i)}}
-  const ds=block(hit,'Bulan','Teguran');
+    H.abs[periode]=absNow;save()}
+  const ps=Object.keys(H.abs).map(Number).sort((a,b)=>a-b);
+  const T={l:ps.map(p=>BLN[p-1]),a:ps.map(p=>H.abs[p].a),s:ps.map(p=>H.abs[p].s),i:ps.map(p=>H.abs[p].i)};
+  const dp=Object.keys(H.disc).map(Number).sort((a,b)=>a-b);
+  const ds=dp.length?{head:['Bulan','Teguran','SP1','SP2','SP3','PHK'],data:dp.map(p=>[BLN[p-1],...['t','sp1','sp2','sp3','phk'].map(k=>H.disc[p][k]||0)])}:null;
 
   // dplk
   const D={};
@@ -230,6 +244,7 @@ function render(){
   if(absNow)h.push(`Absensi ${bln}: alpha ${fmt(absNow.a)}, sakit ${fmt(absNow.s)}, izin ${fmt(absNow.i)}.`);
   if(keluar!=null)h.push(`Karyawan keluar ${bln}: ${fmt(keluar)} orang; masuk ${fmt(masuk)} orang.`);
   $('hl').innerHTML=h.length?h.map(x=>`<li>${esc(x)}</li>`).join(''):'<li class="empty">Belum ada sorotan.</li>';
+  renderMan(periode,[...um]);
 }
 
 const dz=$('drop');
@@ -240,6 +255,16 @@ $('fi').onchange=e=>load([...e.target.files]);
 ['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove('on')}));
 dz.addEventListener('drop',e=>load([...e.dataTransfer.files]));
 $('tg').onclick=()=>{const r=document.documentElement,d=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=d?'light':'dark';render()};
+function renderMan(p,um){
+  const d=H.disc[p]||{},b=H.bud[p]??'';
+  const f=(k,l,v)=>`<label>${l}<input type="number" min="0" data-k="${k}" value="${v??''}"></label>`;
+  $('man').innerHTML=`<p class="sub">Periode ${p}. Tersimpan otomatis di browser ini.</p><div class="mf">${f('t','Teguran',d.t)}${f('sp1','SP1',d.sp1)}${f('sp2','SP2',d.sp2)}${f('sp3','SP3',d.sp3)}${f('phk','PHK',d.phk)}${f('bud','Budget lembur s.d. bulan ini (Rp)',b)}</div>`;
+  $('man').querySelectorAll('input').forEach(i=>i.onchange=()=>{const k=i.dataset.k,v=i.value===''?null:+i.value;
+    if(k==='bud'){if(v==null)delete H.bud[p];else H.bud[p]=v}else{(H.disc[p]=H.disc[p]||{})[k]=v||0}save();render()});
+  const g=[...new Set(Object.values(H.map))];
+  $('um').innerHTML=um.length?`<datalist id="gl">${g.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>`+um.slice(0,40).map(a=>`<div class="bar" style="grid-template-columns:1fr 1fr"><span class="t">${esc(a)}</span><input list="gl" data-a="${esc(a)}" placeholder="Pilih atau ketik kelompok"></div>`).join(''):'<p class="empty">Semua unit sudah terpetakan.</p>';
+  $('um').querySelectorAll('input').forEach(i=>i.onchange=()=>{if(i.value.trim()){H.map[i.dataset.a]=i.value.trim();save();render()}})}
+$('ex').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(H)],{type:'application/json'}));a.download='riwayat_sdm.json';a.click()};
 chips();
 </script>
 </body>
